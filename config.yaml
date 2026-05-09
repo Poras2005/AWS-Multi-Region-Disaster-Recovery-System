@@ -1,0 +1,31 @@
+# config.yaml
+# NON-SENSITIVE settings only. Credentials are prompted at runtime.
+
+aws:
+  primary_region: ap-south-1 # Mumbai
+  secondary_region: ap-southeast-1 # Singapore
+
+app:
+  name: dr-app
+  image_tag: latest
+  port: 5000
+
+terraform:
+  state_bucket_suffix: dr-terraform-state # prepended with account ID at runtime
+  lock_table: terraform-state-lock
+
+route53:
+  domain: <YOUR_DOMAIN> # e.g. dr.yourdomain.com
+  health_check_path: /health
+  failover_ttl: 10
+
+autoscaling:
+  min_instances: 2
+  max_instances: 6
+  desired_instances: 2
+  instance_type: t2.micro
+
+alerts:
+  email: <YOUR_EMAIL>
+  slack_webhook: '' # optional — leave empty string to skip
+  cpu_threshold: 70
