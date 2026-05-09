@@ -23,8 +23,19 @@ The system employs an **Active-Passive (Pilot Light)** architecture across two A
 
 *   **Primary (ap-south-1)**: Full stack (VPC, ASG, ALB, RDS Multi-AZ).
 *   **Standby (ap-southeast-1)**: Cost-optimized stack (VPC, Spot Instances, RDS Read Replica).
+*   **Application Tier**: Stateful Flask microservice with **RDS MySQL persistence** and structured JSON logging.
 *   **Traffic Management**: Route 53 CNAME with Failover Routing Policy + Health Checks.
-*   **Global Entry**: Regional WAF for DDoS and bot protection.
+
+---
+
+## 🧪 The "Proof of Life" Demo
+This project allows you to empirically prove that zero data loss occurred during a regional disaster:
+
+1.  **Deploy**: Execute `python deploy.py`.
+2.  **Write Data**: Post a message to the Mumbai primary region (`POST /message`).
+3.  **Simulate Disaster**: Trigger the `/simulate-fail` endpoint to intentionally break the primary health check.
+4.  **Automatic Failover**: Route 53 detects the failure in < 60s and redirects traffic to Singapore.
+5.  **Verify Persistence**: Refresh the site. You will see **"Region: Singapore"**, but the data you wrote in Mumbai is **still there**, proven by RDS Read Replication.
 
 ---
 

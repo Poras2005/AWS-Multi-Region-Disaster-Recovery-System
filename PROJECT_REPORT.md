@@ -114,8 +114,11 @@ Every file in this project has a specific "Job" (Work) and a specific "Impact" (
 
 ### 🌐 The Application
 *   **`app/app.py` (The Product)**
-    *   **Work:** A simple Flask web app that tells you which region it is currently running in.
-    *   **Influence:** Provides **Visibility**. It allows you to see with your own eyes that the failover actually happened.
+    *   **Work:** A data-driven Flask microservice. It allows users to post messages, checks database health, and provides a failure simulation button.
+    *   **Influence:** Provides **Proof of Persistence**. It allows you to prove that data saved in Mumbai is still available in Singapore after a failure.
+*   **`app/requirements.txt`**
+    *   **Work:** Lists Python drivers like `pymysql` needed to talk to the AWS database.
+    *   **Influence:** Ensures the app has the **Database Connectivity** required for professional workloads.
 *   **`app/Dockerfile` (The Package)**
     *   **Work:** Wraps the app into a "Container" so it runs exactly the same on any server.
     *   **Influence:** Ensures **Consistency**. It eliminates the "it worked on my machine" problem.

@@ -102,7 +102,7 @@ resource "aws_launch_template" "app" {
 
               aws ecr get-login-password --region ${var.region} | docker login --username AWS --password-stdin ${var.account_id}.dkr.ecr.${var.region}.amazonaws.com
               docker pull ${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.app_name}:${var.image_tag}
-              docker run -d -p 5000:5000 -e AWS_REGION=${var.region} -e DB_PASSWORD=$DB_PASS ${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.app_name}:${var.image_tag}
+              docker run -d -p 5000:5000 -e AWS_REGION=${var.region} -e DB_PASSWORD=$DB_PASS -e DB_HOST=${var.db_host} ${var.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.app_name}:${var.image_tag}
               EOF
   )
 
@@ -137,3 +137,4 @@ resource "aws_autoscaling_group" "app" {
 
 output "asg_name" { value = aws_autoscaling_group.app.name }
 output "security_group_id" { value = aws_security_group.ec2.id }
+p.ec2.id }

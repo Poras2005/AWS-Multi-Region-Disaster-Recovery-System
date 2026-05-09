@@ -67,3 +67,4 @@ resource "aws_db_instance" "main" {
 output "db_instance_arn" { value = aws_db_instance.main.arn }
 output "db_instance_id" { value = aws_db_instance.main.id }
 output "secret_arn" { value = aws_secretsmanager_secret.db_pass.arn }
+output "db_endpoint" { value = aws_db_instance.main.address }

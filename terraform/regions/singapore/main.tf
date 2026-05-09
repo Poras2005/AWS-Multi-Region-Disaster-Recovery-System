@@ -59,6 +59,7 @@ module "ec2" {
   account_id       = var.account_id
   image_tag        = "latest"
   db_secret_arn    = module.rds.secret_arn
+  db_host          = module.rds.db_endpoint
   use_spot         = true
 }
 
