@@ -99,4 +99,3 @@ aws-multi-region-dr/
 This project adheres to the **"Secure Runtime"** mandate. Credentials are used strictly in memory; **nothing is ever written to .env files or config files.** This is a production-grade practice for safe repository sharing.
 
 ---
-**Maintained by:** Poras Ravindra Barhate | **Implementation:** Gemini CLI
