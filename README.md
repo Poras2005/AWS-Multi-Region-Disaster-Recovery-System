@@ -1,640 +1,194 @@
 # AWS Multi-Region Disaster Recovery System
 
-Multi-Region Disaster Recovery (DR) and High Availability platform built using AWS, Terraform, Docker, Flask, Python, and GitHub Actions.
----
+A cloud-native disaster recovery platform built on AWS to simulate multi-region failover, automated infrastructure provisioning, and resilient application deployment using Infrastructure as Code (IaC) and DevOps practices.
 
-# Project Highlights
-
-* Multi-region AWS deployment
-* Automated Route53 failover
-* Active-Passive Disaster Recovery architecture
-* Infrastructure as Code using Terraform
-* Dockerized Flask microservice
-* Cross-region RDS replication
-* Auto Scaling and Load Balancing
-* Runtime secret management using AWS Secrets Manager
-* DevSecOps security scanning with Checkov and Trivy
-* CI/CD pipelines using GitHub Actions
-* CloudWatch observability and monitoring
-* Cost optimization using Spot Instances
-* Failure simulation and DR testing
-* Structured JSON logging
-* Region-aware APIs for failover visibility
-* Database-backed workload simulation
+This project demonstrates practical implementation of:
+- Multi-region deployment architecture
+- Route53 DNS failover
+- Cross-region database replication
+- Infrastructure automation with Terraform
+- Containerized microservices
+- CI/CD security validation
+- Cloud monitoring and failover testing
 
 ---
 
 # Architecture Overview
 
-The platform is deployed across two AWS regions:
+The system deploys application infrastructure across two AWS regions in an active-passive disaster recovery setup.
 
-| Region                       | Role                               |
-| ---------------------------- | ---------------------------------- |
-| Mumbai (`ap-south-1`)        | Primary Production Region          |
-| Singapore (`ap-southeast-1`) | Secondary Disaster Recovery Region |
+## Core Components
 
-The primary region handles live production traffic while the secondary region acts as a standby recovery environment.
-
-Amazon Route53 continuously monitors the health of the primary region and automatically redirects traffic to the backup region if a failure occurs.
-
----
-
-# Enterprise Architecture Diagram (Mermaid)
-
-```mermaid
-flowchart TD
-
-    User[User Request]
-
-    User --> R53[Route53 Failover Routing]
-
-    R53 -->|Primary Healthy| ALB1[Primary ALB - Mumbai]
-    R53 -->|Primary Failure| ALB2[Secondary ALB - Singapore]
-
-    subgraph MumbaiPrimary["Mumbai Region - Primary"]
-        ALB1 --> ASG1[Auto Scaling Group]
-
-        ASG1 --> EC21[EC2 Instance 1]
-        ASG1 --> EC22[EC2 Instance 2]
-
-        EC21 --> Docker1[Dockerized Flask App]
-        EC22 --> Docker2[Dockerized Flask App]
-
-        Docker1 --> RDS1[(Primary RDS Database)]
-        Docker2 --> RDS1
-
-        Docker1 --> CW1[CloudWatch Logs & Metrics]
-        Docker2 --> CW1
-    end
-
-    subgraph SingaporeDR["Singapore Region - DR"]
-        ALB2 --> ASG2[Standby Auto Scaling Group]
-
-        ASG2 --> EC23[Spot EC2 Instance]
-
-        EC23 --> Docker3[Dockerized Flask App]
-
-        Docker3 --> RDS2[(Replica RDS Database)]
-
-        Docker3 --> CW2[CloudWatch Logs & Metrics]
-    end
-
-    RDS1 -->|Cross-Region Replication| RDS2
-
-    GitHub[GitHub Actions CI/CD] --> Terraform[Terraform Deployment]
-
-    Terraform --> MumbaiPrimary
-    Terraform --> SingaporeDR
-
-    Secrets[AWS Secrets Manager] --> Docker1
-    Secrets --> Docker2
-    Secrets --> Docker3
-
-    IAM[AWS IAM Roles] --> EC21
-    IAM --> EC22
-    IAM --> EC23
-```
+- AWS EC2 instances for application hosting
+- Auto Scaling Groups for workload resilience
+- Elastic Load Balancers for traffic distribution
+- Route53 health checks and DNS failover
+- Cross-region Amazon RDS replication
+- Dockerized Flask microservice
+- Terraform-based infrastructure provisioning
+- GitHub Actions CI/CD workflows
+- CloudWatch monitoring and alerting
 
 ---
 
-# Disaster Recovery Workflow
+# Tech Stack
 
-## Normal Operation
-
-```text
-User → Route53 → Mumbai ALB → EC2 Auto Scaling Group → Dockerized Flask App → RDS
-```
-
-## During Failure
-
-If the Mumbai region becomes unavailable:
-
-1. Route53 health checks fail
-2. DNS failover is triggered
-3. Traffic is redirected to Singapore
-4. Backup infrastructure becomes active
-5. Application continues serving requests
-
-## Failover Traffic Flow
-
-```text
-User → Route53 → Singapore ALB → Standby EC2 → Flask App → Replica RDS
-```
+| Category | Technologies |
+|---|---|
+| Cloud Platform | AWS |
+| Infrastructure as Code | Terraform |
+| Containerization | Docker |
+| Backend | Flask (Python) |
+| CI/CD | GitHub Actions |
+| Security Scanning | Checkov, Trivy |
+| Monitoring | AWS CloudWatch |
+| DNS & Failover | Route53 |
+| Database | Amazon RDS |
 
 ---
 
-# Technology Stack
+# Key Features
 
-## Cloud Services
+## Multi-Region Failover
 
-* Amazon EC2
-* Amazon VPC
-* Amazon Route53
-* Amazon RDS
-* Amazon CloudWatch
-* Amazon ECR
-* AWS IAM
-* AWS Secrets Manager
-* Auto Scaling Groups
-* Application Load Balancer
+Implemented Route53 DNS failover between primary and secondary AWS regions using health checks and automated traffic redirection.
 
-## DevOps & Infrastructure
+## Infrastructure Automation
 
-* Terraform
-* Docker
-* GitHub Actions
-* Python
-* Bash
+Provisioned AWS infrastructure using reusable Terraform modules for networking, compute, database, and monitoring resources.
 
-## Backend Application
+## Containerized Application Deployment
 
-* Flask
-* REST APIs
-* Structured Logging
-* Health Checks
-* Metrics Endpoints
-* Region Awareness
+Built and deployed a Dockerized Flask microservice with:
+- Region-aware API responses
+- Health-check endpoints
+- Structured application logging
+- Database-backed request simulation
 
-## DevSecOps Tools
+## CI/CD Validation Pipeline
 
-* Checkov
-* Trivy
+Integrated GitHub Actions workflows for:
+- Terraform validation
+- Security scanning using Checkov
+- Container vulnerability scanning using Trivy
+- Automated deployment workflows
+
+## Monitoring & Observability
+
+Configured CloudWatch monitoring for:
+- EC2 instance health
+- Application availability
+- Infrastructure events
+- Failover simulation testing
 
 ---
 
 # Project Structure
 
 ```bash
-AWS-Multi-Region-Disaster-Recovery-System/
+.
+├── terraform/
+│   ├── modules/
+│   ├── environments/
+│   └── main.tf
 │
 ├── app/
-│   ├── app.py
+│   ├── routes/
+│   ├── templates/
 │   ├── Dockerfile
-│   └── requirements.txt
+│   └── app.py
 │
-├── scripts/
-│   ├── spinup.py
-│   ├── teardown.py
-│   └── test_failover.py
+├── .github/workflows/
 │
-├── terraform/
-│   ├── global/
-│   ├── modules/
-│   │   ├── alb/
-│   │   ├── ec2/
-│   │   ├── monitoring/
-│   │   ├── rds/
-│   │   └── vpc/
-│   │
-│   └── regions/
-│       ├── mumbai/
-│       └── singapore/
+├── monitoring/
 │
-├── .github/
-│   └── workflows/
-│       ├── deploy.yml
-│       └── destroy.yml
-│
-├── deploy.py
-├── config.yaml
-└── README.md
+└── scripts/
 ```
 
 ---
 
-# Flask Microservice Features
+# Deployment Workflow
 
-The Flask application was designed as a cloud-native microservice workload for demonstrating real disaster recovery behavior.
-
-## Key Features
-
-### REST APIs
-
-Supports:
-
-* Create data
-* Read data
-* Health checks
-* Failure simulation
-
-### Region Awareness
-
-The application dynamically displays:
-
-* active AWS region
-* hostname
-* infrastructure state
-
-This allows live visualization of failover events.
-
-### Structured JSON Logging
-
-Production-style JSON logs are generated for:
-
-* requests
-* errors
-* health checks
-* database operations
-
-### Database Integration
-
-The application connects to Amazon RDS for:
-
-* persistent storage
-* workload simulation
-* replication validation
-
-### Failure Simulation Endpoint
-
-```bash
-/simulate-fail
-```
-
-Used to intentionally trigger unhealthy behavior for:
-
-* DR testing
-* Route53 failover validation
-* resilience demonstrations
-
-### Deep Health Checks
-
-Health endpoints validate:
-
-* application status
-* database connectivity
-* service availability
+1. Provision AWS infrastructure using Terraform
+2. Build and containerize Flask application
+3. Deploy workloads to primary AWS region
+4. Configure Route53 health checks and failover policies
+5. Enable cross-region RDS replication
+6. Validate failover using simulated outages
 
 ---
 
-# Infrastructure as Code (Terraform)
+# Disaster Recovery Workflow
 
-The entire infrastructure is provisioned using modular Terraform architecture.
+## Normal Operation
+- Primary region handles application traffic
+- Secondary region remains on standby
+- Route53 continuously monitors endpoint health
 
-## Terraform Modules
-
-### VPC Module
-
-Creates:
-
-* VPC
-* Public Subnets
-* Private Subnets
-* Internet Gateway
-* Route Tables
-* NAT Gateway
-
-### ALB Module
-
-Creates:
-
-* Application Load Balancer
-* Target Groups
-* Listeners
-* Health Checks
-
-### EC2 Module
-
-Creates:
-
-* EC2 instances
-* Auto Scaling Groups
-* Launch Templates
-* IAM Roles
-* Docker runtime automation
-
-### RDS Module
-
-Creates:
-
-* Primary database
-* Cross-region replica database
-
-### Monitoring Module
-
-Creates:
-
-* CloudWatch dashboards
-* alarms
-* infrastructure monitoring
+## Failover Scenario
+- Route53 detects application failure
+- DNS traffic redirects to secondary region
+- Secondary infrastructure serves application traffic
 
 ---
 
-# Docker & Containerization
+# Validation & Testing
 
-The Flask application is fully containerized using Docker.
+The project was tested using simulated application and infrastructure failures.
 
-## Benefits
+### Tested Scenarios
 
-* Immutable deployments
-* Environment consistency
-* Faster scaling
-* Rapid disaster recovery
-* Easier CI/CD integration
+- EC2 application shutdown
+- Health-check failure simulation
+- Route53 DNS failover behavior
+- Terraform infrastructure recreation
+- CI/CD security validation workflows
 
-## Container Startup Automation
+### Observations
 
-EC2 User Data automatically:
-
-* installs Docker
-* authenticates with ECR
-* pulls container images
-* retrieves secrets
-* launches containers
+- DNS failover response observed within approximately 45–70 seconds depending on DNS propagation behavior
+- Infrastructure redeployment successfully validated using Terraform automation
+- Security scans detected vulnerable container dependencies during CI/CD testing
 
 ---
 
-# Auto Scaling & High Availability
+# Security Practices
 
-Auto Scaling Groups automatically adjust infrastructure capacity based on demand.
+Implemented several foundational cloud security practices:
 
-## Benefits
-
-* High availability
-* Elastic scaling
-* Fault tolerance
-* Self-healing infrastructure
-
-The Application Load Balancer distributes traffic only to healthy instances.
+- IAM role-based access control
+- AWS Secrets Manager integration
+- Infrastructure security scanning using Checkov
+- Container image vulnerability scanning using Trivy
+- Principle of least privilege for service permissions
 
 ---
 
-# RDS & Database Replication
-
-Amazon RDS is used to provide:
-
-* managed relational database services
-* automatic backups
-* cross-region replication
-* disaster recovery support
-* persistent application storage
-
-## Replication Strategy
-
-Primary database:
-
-* Mumbai region
-
-Replica database:
-
-* Singapore region
-
-This ensures application data remains available even during regional failures.
-
----
-
-# Security Architecture
-
-The project follows multiple enterprise-grade security practices.
-
-## IAM Role-Based Access
-
-EC2 instances use IAM Roles instead of hardcoded credentials.
-
-## AWS Secrets Manager
-
-Sensitive credentials are securely retrieved at runtime.
-
-## Network Isolation
-
-* EC2 instances are protected behind ALBs
-* databases remain inside private subnets
-* security groups restrict unauthorized traffic
-
-## DevSecOps Security Scanning
-
-### Checkov
-
-Scans Terraform code for infrastructure misconfigurations.
-
-### Trivy
-
-Scans Docker containers for vulnerabilities and CVEs.
-
----
-
-# CI/CD Pipeline
-
-GitHub Actions automates infrastructure deployment and security validation.
-
-## Deployment Workflow
-
-### deploy.yml
-
-Pipeline stages:
-
-1. Checkout repository
-2. Setup Python
-3. Install dependencies
-4. Setup Terraform
-5. Run Checkov scan
-6. Run Trivy scan
-7. Deploy infrastructure
-
-## Destroy Workflow
-
-### destroy.yml
-
-Used for:
-
-* infrastructure teardown
-* cloud cost optimization
-* cleanup automation
-
----
-
-# Observability & Monitoring
-
-Amazon CloudWatch provides infrastructure observability.
-
-## Monitored Metrics
-
-* CPU utilization
-* EC2 health
-* application availability
-* scaling events
-* health check failures
-* regional availability
-
-## Logging
-
-Structured JSON logs improve:
-
-* debugging
-* monitoring
-* centralized logging
-* operational visibility
-
----
-
-# Cost Optimization
-
-The disaster recovery region uses Spot Instances to reduce standby operational costs.
-
-## Operational Scripts
-
-### teardown.py
-
-Used to destroy infrastructure and reduce AWS billing.
-
-### spinup.py
-
-Used to quickly restore infrastructure.
-
----
-
-# Disaster Recovery Testing
-
-The project includes dedicated DR testing capabilities.
-
-## test_failover.py
-
-Used to:
-
-* simulate regional outages
-* validate Route53 failover
-* test resilience behavior
-* demonstrate automated recovery
-
----
-
-# Deployment Instructions
-
-## Prerequisites
-
-Install:
-
-* Python 3.x
-* Terraform
-* Docker
-* AWS CLI
-* Git
-
-Configure AWS credentials:
-
-```bash
-aws configure
-```
-
----
-
-# Clone Repository
-
-```bash
-git clone https://github.com/Poras2005/AWS-Multi-Region-Disaster-Recovery-System.git
-
-cd AWS-Multi-Region-Disaster-Recovery-System
-```
-
----
-
-# Install Dependencies
-
-```bash
-pip install -r app/requirements.txt
-```
-
----
-
-# Deploy Infrastructure
-
-```bash
-python deploy.py
-```
-
----
-
-# Run Failover Test
-
-```bash
-python scripts/test_failover.py
-```
-
----
-
-# Tear Down Infrastructure
-
-```bash
-python scripts/teardown.py
-```
-
----
-
-# Restore Infrastructure
-
-```bash
-python scripts/spinup.py
-```
-
----
-
-# Engineering Concepts Demonstrated
-
-## Cloud Engineering
-
-* AWS architecture
-* Multi-region deployment
-* High availability
-* Disaster recovery
-
-## DevOps
-
-* Infrastructure as Code
-* CI/CD automation
-* Docker workflows
-* deployment pipelines
-
-## Site Reliability Engineering (SRE)
-
-* health checks
-* observability
-* failover testing
-* structured logging
-* reliability engineering
-
-## DevSecOps
-
-* infrastructure security scanning
-* container vulnerability scanning
-* IAM least privilege
-* secure secret management
-
-## FinOps
-
-* spot instance optimization
-* automated teardown tooling
-* resource lifecycle management
+# Current Limitations
+
+This project is designed as a learning-focused disaster recovery implementation and has several limitations:
+
+- Uses active-passive failover instead of active-active architecture
+- Terraform state is currently stored locally
+- Limited application-level observability
+- Database replication lag may affect immediate consistency during failover
+- Failover timing depends on DNS TTL and health-check intervals
 
 ---
 
 # Future Improvements
 
-Potential future enhancements:
+Potential enhancements include:
 
-* Kubernetes (EKS/ECS)
-* Prometheus + Grafana monitoring
-* AWS WAF integration
-* Blue-Green deployments
-* Lambda-driven automated failover
-* Distributed tracing
-* Chaos Engineering testing
-* OpenTelemetry observability
-
----
-
-# Learning Outcomes
-
-This project demonstrates practical experience in:
-
-* AWS Cloud Engineering
-* DevOps Automation
-* Infrastructure as Code
-* Disaster Recovery Architecture
-* High Availability Systems
-* Site Reliability Engineering
-* DevSecOps
-* Cloud Security
-* Docker & Containerization
-* Observability & Monitoring
-* CI/CD Pipelines
+- Remote Terraform state management using S3 + DynamoDB locking
+- Kubernetes-based deployment architecture
+- Centralized logging with Grafana Loki or ELK Stack
+- Blue/Green deployment strategy
+- Automated rollback workflows
+- Chaos engineering-based failure testing
+- Prometheus and Grafana integration
 
 ---
+
+- GitHub: https://github.com/Poras2005
+- LinkedIn: [Add LinkedIn URL]
